@@ -78,99 +78,94 @@
     <button id="startBtn">Start Countdown</button>
 </div>
 
-<!-- Main audio -->
 <audio id="countdownAudio" src="audio.mp3" preload="auto"></audio>
 
-<!-- Confetti library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
-    let timeInSeconds = 3600; // 1 hour
-    const countdownEl = document.getElementById("countdown");
-    const audio = document.getElementById("countdownAudio");
-    const startBtn = document.getElementById("startBtn");
-    const audioTriggers = {
-        3527: 0,
-        3001: 5,
-        2401: 10,
-        1801: 15,
-        1201: 20,
-        601: 25,
-        301: 30,
-        61: 35,
-        51: 40,
-        41: 45,
-        31: 50,
-        21: 55,
-        11: 60,
-        10: 65,
-        9: 70,
-        8: 75,
-        7: 80,
-        6: 85,
-        5: 90,
-        4: 95,
-        3: 100,
-        2: 105,
-        1: 110
-    };
+let timeInSeconds = 3600; // 1 hour
+const countdownEl = document.getElementById("countdown");
+const audio = document.getElementById("countdownAudio");
+const startBtn = document.getElementById("startBtn");
 
-    let triggeredTimes = new Set();
-    let countdownInterval;
+// Audio segments: countdown time -> [startTimeInAudio, durationInSeconds]
+const audioTriggers = {
+    3527: [4, 3],
+    3001: [10, 3],
+    2401: [20, 3],
+    1801: [30, 3],
+    1201: [40, 3],
+    601:  [50, 3],
+    301:  [60, 3],
+    61:   [70, 3],
+    51:   [80, 3],
+    41:   [90, 3],
+    31:   [100,3],
+    21:   [110,3],
+    11:   [120,3],
+    10:   [130,3],
+    9:    [140,3],
+    8:    [150,3],
+    7:    [160,3],
+    6:    [170,3],
+    5:    [180,3],
+    4:    [190,3],
+    3:    [200,3],
+    2:    [210,3],
+    1:    [220,3]
+};
 
-    function launchConfetti() {
-        const duration = 5 * 1000;
-        const end = Date.now() + duration;
+let triggeredTimes = new Set();
+let countdownInterval;
 
-        (function frame() {
-            confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 }
-            });
-            confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 }
-            });
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        })();
+function launchConfetti() {
+    const duration = 5 * 1000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+}
+
+// Play only the designated audio segment
+function playSegment(startTime, duration) {
+    audio.currentTime = startTime;
+    audio.play().catch(e => console.log("Audio blocked:", e));
+    setTimeout(() => audio.pause(), duration * 1000);
+}
+
+function updateTimer() {
+    let hours = Math.floor(timeInSeconds / 3600);
+    let minutes = Math.floor((timeInSeconds % 3600) / 60);
+    let seconds = timeInSeconds % 60;
+
+    countdownEl.textContent =
+        String(hours).padStart(2,'0') + ":" +
+        String(minutes).padStart(2,'0') + ":" +
+        String(seconds).padStart(2,'0');
+
+    if (audioTriggers[timeInSeconds] && !triggeredTimes.has(timeInSeconds)) {
+        const [start, duration] = audioTriggers[timeInSeconds];
+        playSegment(start, duration);
+        triggeredTimes.add(timeInSeconds);
     }
 
-    function updateTimer() {
-        let hours = Math.floor(timeInSeconds / 3600);
-        let minutes = Math.floor((timeInSeconds % 3600) / 60);
-        let seconds = timeInSeconds % 60;
-
-        countdownEl.textContent =
-            String(hours).padStart(2, '0') + ":" +
-            String(minutes).padStart(2, '0') + ":" +
-            String(seconds).padStart(2, '0');
-
-        if (audioTriggers[timeInSeconds] && !triggeredTimes.has(timeInSeconds)) {
-            audio.currentTime = audioTriggers[timeInSeconds];
-            audio.play().catch(e => console.log("Audio play prevented:", e));
-            triggeredTimes.add(timeInSeconds);
-        }
-
-        if (timeInSeconds > 0) {
-            timeInSeconds--;
-        } else if (countdownEl.textContent !== "🎉 Let's Go! 🎉") {
-            countdownEl.textContent = "🎉 Let's Go! 🎉";
-            launchConfetti();
-            clearInterval(countdownInterval);
-        }
+    if (timeInSeconds > 0) {
+        timeInSeconds--;
+    } else if (countdownEl.textContent !== "🎉 Let's Go! 🎉") {
+        countdownEl.textContent = "🎉 Let's Go! 🎉";
+        launchConfetti();
+        clearInterval(countdownInterval);
     }
+}
 
-    startBtn.addEventListener("click", () => {
-        audio.play().catch(e => console.log("Audio play prevented:", e));
-        startBtn.style.display = "none";
-        updateTimer();
-        countdownInterval = setInterval(updateTimer, 1000);
-    });
+// Start button to enable audio (required by browsers)
+startBtn.addEventListener("click", () => {
+    startBtn.style.display = "none";
+    updateTimer();
+    countdownInterval = setInterval(updateTimer, 1000);
+});
 </script>
 
 </body>

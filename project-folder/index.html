@@ -160,9 +160,14 @@ function updateTimer() {
     }
 }
 
-// Start button to enable audio (required by browsers)
+// Unlock audio on button click
 startBtn.addEventListener("click", () => {
     startBtn.style.display = "none";
+
+    // Play then pause immediately to satisfy browser autoplay policy
+    audio.play().then(() => audio.pause()).catch(e => console.log("Audio blocked:", e));
+
+    // Start countdown
     updateTimer();
     countdownInterval = setInterval(updateTimer, 1000);
 });

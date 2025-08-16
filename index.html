@@ -65,10 +65,40 @@
     <div class="timer" id="countdown">01:00:00</div>
 </div>
 
+<audio id="countdownAudio" src="audio.mp3" preload="auto"></audio>
+
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
-    let timeInSeconds = 7200; // hour(s)
+    let timeInSeconds = 3600; // 1 hour
     const countdownEl = document.getElementById("countdown");
+    const audio = document.getElementById("countdownAudio");
+
+    // Map of trigger times (seconds left) to audio playback times (seconds in audio file)
+    const audioTriggers = {
+        3601: 0,    // 60 min mark (1 sec before)
+        3001: 5,    // 50 min
+        2401: 10,   // 40 min
+        1801: 15,   // 30 min
+        1201: 20,   // 20 min
+        601: 25,    // 10 min
+        301: 30,    // 5 min
+        61: 35,     // 1 min
+        51: 40,     // 50 sec
+        41: 45,     // 40 sec
+        31: 50,     // 30 sec
+        21: 55,     // 20 sec
+        11: 60,     // 10 sec
+        10: 65,
+        9: 70,
+        8: 75,
+        7: 80,
+        6: 85,
+        5: 90,
+        4: 95,
+        3: 100,
+        2: 105,
+        1: 110
+    };
 
     function launchConfetti() {
         const duration = 5 * 1000;
@@ -102,6 +132,12 @@
             String(hours).padStart(2, '0') + ":" +
             String(minutes).padStart(2, '0') + ":" +
             String(seconds).padStart(2, '0');
+
+        // Check for audio triggers
+        if (audioTriggers[timeInSeconds]) {
+            audio.currentTime = audioTriggers[timeInSeconds];
+            audio.play();
+        }
 
         if (timeInSeconds > 0) {
             timeInSeconds--;

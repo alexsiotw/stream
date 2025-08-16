@@ -1,96 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Game Night Countdown</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Night Countdown</title>
+<style>
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad390);
-      font-family: Arial, sans-serif;
-      margin: 0;
-      overflow: hidden;
-      flex-direction: column;
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+        text-align: center;
+        overflow: hidden;
     }
-    #countdown {
-      font-size: 3em;
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-      z-index: 2;
+
+    .container {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        animation: fadeIn 1s ease-in-out;
+        position: relative;
+        z-index: 1;
     }
-    #circle {
-      position: absolute;
-      width: 250px;
-      height: 250px;
-      border: 15px solid white;
-      border-radius: 50%;
-      z-index: 1;
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 10px black;
     }
-    #startMessage {
-      color: white;
-      margin-top: 20px;
-      font-size: 1.2em;
+
+    .timer {
+        font-size: 5rem;
+        font-weight: bold;
+        letter-spacing: 5px;
+        text-shadow: 2px 2px 15px #ffed4a;
+        animation: glow 1.5s infinite;
     }
-  </style>
+
+    @keyframes fadeIn {
+        from {opacity: 0;}
+        to {opacity: 1;}
+    }
+
+    @keyframes glow {
+        0%, 100% {
+            text-shadow: 0 0 20px #ffed4a, 0 0 30px #ffed4a, 0 0 40px #ffed4a;
+        }
+        50% {
+            text-shadow: 0 0 10px #ffed4a, 0 0 20px #ffed4a, 0 0 30px #ffed4a;
+        }
+    }
+</style>
 </head>
 <body>
-  <div id="circle"></div>
-  <div id="countdown">Loading...</div>
-  <div id="startMessage">Click anywhere to start the countdown</div>
-  <audio id="countdown-audio" src="countdown.mp3"></audio>
-  <script>
-    const countdown = document.getElementById("countdown");
-    const audio = document.getElementById("countdown-audio");
-    const startMessage = document.getElementById("startMessage");
 
-    let time = 60 * 60; // 1 hour in seconds
+<canvas id="confetti-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></canvas>
+<div class="container">
+    <h1>🎮 Game Night Starts In 🎮</h1>
+    <div class="timer" id="countdown">01:00:00</div>
+</div>
 
-    // Audio trigger times (adjusted for 58:27 audio start)
-    const audioTriggers = [
-      3527, // 58:27
-      301,  // 5:01
-      61,   // 1:01
-      51, 41, 31, 21, 11,
-      10, 9, 8, 7, 6, 5, 4, 3, 2, 1
-    ];
+<audio id="countdownAudio" src="audio.mp3" preload="auto"></audio>
 
-    function updateTimer() {
-      const minutes = Math.floor(time / 60);
-      const seconds = time % 60;
-      countdown.textContent = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    let timeInSeconds = 3600; // 1 hour
+    const countdownEl = document.getElementById("countdown");
+    const audio = document.getElementById("countdownAudio");
 
-      // Play audio if time is in triggers
-      if (audioTriggers.includes(time)) {
-        audio.currentTime = 0;
-        audio.play();
-      }
+    // Adjusted audio triggers based on audio length 58:31,
+    // so first trigger is at 58:27 (353 *seconds into countdown = 3600-353=3247s left)
+    const audioTriggers = {
+        3527: 0,   // 58:27
+        3001: 5,   // 50:00 (triggered at 50:01)
+        2401: 10,  // 40:00 (triggered at 40:01)
+        1801: 15,  // 30:00 (triggered at 30:01)
+        1201: 20,  // 20:00 (triggered at 20:01)
+        601: 25,   // 10:00 (triggered at 10:01)
+        301: 30,   // 5:00 (triggered at 5:01)
+        61: 35,    // 1:00 (triggered at 1:01)
+        51: 40,    // 50s (triggered at 51s)
+        41: 45,    // 40s (triggered at 41s)
+        31: 50,    // 30s (triggered at 31s)
+        21: 55,    // 20s (triggered at 21s)
+        11: 60,    // 10s (triggered at 11s)
+        10: 65,    // 9s
+        9: 70,     // 8s
+        8: 75,     // 7s
+        7: 80,     // 6s
+        6: 85,     // 5s
+        5: 90,     // 4s
+        4: 95,     // 3s
+        3: 100,    // 2s
+        2: 105,    // 1s
+        1: 110     // 0s
+    };
 
-      // Fire confetti at 0
-      if (time === 0) {
-        confetti({
-          particleCount: 200,
-          spread: 100,
-          origin: { y: 0.6 }
-        });
-        clearInterval(timerInterval);
-      }
-      time--;
+    function launchConfetti() {
+        const duration = 5 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 }
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 }
+            });
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        })();
     }
 
-    let timerInterval;
+    function updateTimer() {
+        let hours = Math.floor(timeInSeconds / 3600);
+        let minutes = Math.floor((timeInSeconds % 3600) / 60);
+        let seconds = timeInSeconds % 60;
 
-    // Start on first click
-    document.body.addEventListener("click", () => {
-      startMessage.style.display = "none";
-      updateTimer();
-      timerInterval = setInterval(updateTimer, 1000);
-    }, { once: true });
-  </script>
+        countdownEl.textContent =
+            String(hours).padStart(2, '0') + ":" +
+            String(minutes).padStart(2, '0') + ":" +
+            String(seconds).padStart(2, '0');
+
+        // Check for audio triggers
+        if (audioTriggers[timeInSeconds]) {
+            audio.currentTime = audioTriggers[timeInSeconds];
+            audio.play();
+        }
+
+        if (timeInSeconds > 0) {
+            timeInSeconds--;
+        } else if (countdownEl.textContent !== "🎉 Let's Go! 🎉") {
+            countdownEl.textContent = "🎉 Let's Go! 🎉";
+            launchConfetti();
+        }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+</script>
+
 </body>
 </html>

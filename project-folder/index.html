@@ -1,119 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game Night Countdown</title>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Night Countdown</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
     body {
-        margin: 0;
-        height: 100vh;
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-family: 'Segoe UI', sans-serif;
-        color: white;
-        text-align: center;
-        overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
     }
-
-    .container {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        animation: fadeIn 1s ease-in-out;
-        position: relative;
-        z-index: 1;
+    #countdown {
+      font-size: 4rem;
+      margin: 20px 0;
     }
-
-    h1 {
-        font-size: 3rem;
-        margin-bottom: 20px;
-        text-shadow: 2px 2px 10px black;
+    button {
+      background: #ffcc00;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease;
     }
-
-    .timer {
-        font-size: 5rem;
-        font-weight: bold;
-        letter-spacing: 5px;
-        text-shadow: 2px 2px 15px #ffed4a;
-        animation: glow 1.5s infinite;
+    button:hover {
+      background: #ffaa00;
     }
-
-    @keyframes fadeIn {
-        from {opacity: 0;}
-        to {opacity: 1;}
-    }
-
-    @keyframes glow {
-        0%, 100% {
-            text-shadow: 0 0 20px #ffed4a, 0 0 30px #ffed4a, 0 0 40px #ffed4a;
-        }
-        50% {
-            text-shadow: 0 0 10px #ffed4a, 0 0 20px #ffed4a, 0 0 30px #ffed4a;
-        }
-    }
-</style>
+  </style>
 </head>
 <body>
+  <h1>🎮 Game Night Countdown 🎮</h1>
+  <div id="countdown">01:00:00</div>
+  <button onclick="startCountdown()">Start Countdown</button>
 
-<canvas id="confetti-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></canvas>
-<div class="container">
-    <h1>🎮 Game Night Starts In 🎮</h1>
-    <div class="timer" id="countdown">01:00:00</div>
-</div>
+  <audio id="gameAudio" src="audio.mp3"></audio>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script>
-    let timeInSeconds = 3600; // 1 hour
-    const countdownEl = document.getElementById("countdown");
+  <script>
+    let countdownInterval;
+    let totalSeconds = 3600; // 1 hour
+
+    function startCountdown() {
+      const audio = document.getElementById('gameAudio');
+      audio.currentTime = 0;
+      audio.play();
+
+      clearInterval(countdownInterval);
+
+      countdownInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(countdownInterval);
+          document.getElementById("countdown").innerText = "Game Time!";
+          launchConfetti();
+        } else {
+          totalSeconds--;
+          const hrs = Math.floor(totalSeconds / 3600);
+          const mins = Math.floor((totalSeconds % 3600) / 60);
+          const secs = totalSeconds % 60;
+          document.getElementById("countdown").innerText =
+            `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+      }, 1000);
+    }
 
     function launchConfetti() {
-        const duration = 5 * 1000;
-        const end = Date.now() + duration;
+      const duration = 5 * 1000;
+      const end = Date.now() + duration;
 
-        (function frame() {
-            confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 }
-            });
-            confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 }
-            });
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        })();
-    }
-
-    function updateTimer() {
-        let hours = Math.floor(timeInSeconds / 3600);
-        let minutes = Math.floor((timeInSeconds % 3600) / 60);
-        let seconds = timeInSeconds % 60;
-
-        countdownEl.textContent =
-            String(hours).padStart(2, '0') + ":" +
-            String(minutes).padStart(2, '0') + ":" +
-            String(seconds).padStart(2, '0');
-
-        if (timeInSeconds > 0) {
-            timeInSeconds--;
-        } else if (countdownEl.textContent !== "🎉 Let's Go! 🎉") {
-            countdownEl.textContent = "🎉 Let's Go! 🎉";
-            launchConfetti();
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 }
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 }
+        });
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
         }
+      }());
     }
-
-    updateTimer();
-    setInterval(updateTimer, 1000);
-</script>
-
+  </script>
 </body>
 </html>

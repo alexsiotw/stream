@@ -1,86 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Night Countdown</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Night Countdown</title>
+<style>
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      font-family: Arial, sans-serif;
-      color: white;
-      margin: 0;
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+        text-align: center;
+        overflow: hidden;
     }
-    .countdown-container {
-      text-align: center;
+
+    .container {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        animation: fadeIn 1s ease-in-out;
+        position: relative;
+        z-index: 1;
     }
-    #timer {
-      font-size: 5em;
-      margin-top: 20px;
+
+    h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 10px black;
     }
-  </style>
+
+    .timer {
+        font-size: 5rem;
+        font-weight: bold;
+        letter-spacing: 5px;
+        text-shadow: 2px 2px 15px #ffed4a;
+        animation: glow 1.5s infinite;
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0;}
+        to {opacity: 1;}
+    }
+
+    @keyframes glow {
+        0%, 100% {
+            text-shadow: 0 0 20px #ffed4a, 0 0 30px #ffed4a, 0 0 40px #ffed4a;
+        }
+        50% {
+            text-shadow: 0 0 10px #ffed4a, 0 0 20px #ffed4a, 0 0 30px #ffed4a;
+        }
+    }
+</style>
 </head>
 <body>
-  <div class="countdown-container">
-    <h1>Game Night Countdown</h1>
-    <div id="timer">60:00</div>
-  </div>
 
-  <audio id="gameAudio" src="audio.mp3"></audio>
+<canvas id="confetti-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></canvas>
+<div class="container">
+    <h1>🎮 Game Night Starts In 🎮</h1>
+    <div class="timer" id="countdown">01:00:00</div>
+</div>
 
-  <script>
-    const timerDisplay = document.getElementById('timer');
-    const gameAudio = document.getElementById('gameAudio');
-    let countdownTime = 60 * 60; // 1 hour in seconds
+<audio id="countdownAudio" src="audio.mp3" preload="auto"></audio>
 
-    function startCountdown() {
-      // Start the audio at the same time
-      gameAudio.play();
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    let timeInSeconds = 3600; // 1 hour
+    const countdownEl = document.getElementById("countdown");
+    const audio = document.getElementById("countdownAudio");
 
-      const countdown = setInterval(() => {
-        const minutes = Math.floor(countdownTime / 60);
-        const seconds = countdownTime % 60;
-        timerDisplay.textContent =
-          `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-        if (countdownTime <= 0) {
-          clearInterval(countdown);
-          launchConfetti();
-        }
-        countdownTime--;
-      }, 1000);
-    }
+    // Map of trigger times (seconds left) to audio playback times (seconds in audio file)
+    const audioTriggers = {
+        3601: 0,    // 60 min mark (1 sec before)
+        3001: 5,    // 50 min
+        2401: 10,   // 40 min
+        1801: 15,   // 30 min
+        1201: 20,   // 20 min
+        601: 25,    // 10 min
+        301: 30,    // 5 min
+        61: 35,     // 1 min
+        51: 40,     // 50 sec
+        41: 45,     // 40 sec
+        31: 50,     // 30 sec
+        21: 55,     // 20 sec
+        11: 60,     // 10 sec
+        10: 65,
+        9: 70,
+        8: 75,
+        7: 80,
+        6: 85,
+        5: 90,
+        4: 95,
+        3: 100,
+        2: 105,
+        1: 110
+    };
 
     function launchConfetti() {
-      const duration = 5 * 1000;
-      const end = Date.now() + duration;
+        const duration = 5 * 1000;
+        const end = Date.now() + duration;
 
-      (function frame() {
-        confetti({
-          particleCount: 5,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 }
-        });
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 }
-        });
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      })();
+        (function frame() {
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 }
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 }
+            });
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        })();
     }
 
-    // Start automatically on page load
-    window.onload = startCountdown;
-  </script>
+    function updateTimer() {
+        let hours = Math.floor(timeInSeconds / 3600);
+        let minutes = Math.floor((timeInSeconds % 3600) / 60);
+        let seconds = timeInSeconds % 60;
+
+        countdownEl.textContent =
+            String(hours).padStart(2, '0') + ":" +
+            String(minutes).padStart(2, '0') + ":" +
+            String(seconds).padStart(2, '0');
+
+        // Check for audio triggers
+        if (audioTriggers[timeInSeconds]) {
+            audio.currentTime = audioTriggers[timeInSeconds];
+            audio.muted = false; // make sure it's unmuted
+            audio.play().catch(e => console.log("Autoplay blocked:", e));
+        }
+
+        if (timeInSeconds > 0) {
+            timeInSeconds--;
+        } else if (countdownEl.textContent !== "🎉 Let's Go! 🎉") {
+            countdownEl.textContent = "🎉 Let's Go! 🎉";
+            launchConfetti();
+        }
+    }
+
+    // Start countdown on first user interaction (fixes autoplay restriction)
+    window.addEventListener("click", () => {
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    }, { once: true });
+</script>
+
 </body>
 </html>

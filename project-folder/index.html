@@ -1,134 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Game Night Countdown</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      font-family: Arial, sans-serif;
-      color: white;
-      text-align: center;
       flex-direction: column;
     }
-    #countdown {
-      font-size: 4em;
-      font-weight: bold;
+    #timer {
+      font-size: 5em;
+      margin: 20px;
     }
-    #startButton {
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 1.2em;
-      font-weight: bold;
+    #startBtn {
+      padding: 15px 30px;
+      font-size: 1.5em;
+      background: #ff4081;
       border: none;
-      border-radius: 10px;
-      background: #ffcc00;
-      color: #333;
+      border-radius: 12px;
+      color: white;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: background 0.3s;
     }
-    #startButton:hover {
-      transform: scale(1.05);
-    }
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
+    #startBtn:hover {
+      background: #e91e63;
     }
   </style>
 </head>
 <body>
-  <div id="countdown">01:00:00</div>
-  <button id="startButton">Start Countdown</button>
-  <audio id="audio" src="audio.mp3"></audio>
-  <canvas id="confetti"></canvas>
+  <h1>Game Night Countdown</h1>
+  <div id="timer">01:00:00</div>
+  <button id="startBtn">Start Countdown</button>
+  <audio id="countdownAudio" src="audio.mp3"></audio>
 
   <script>
-    const countdownEl = document.getElementById("countdown");
-    const startButton = document.getElementById("startButton");
-    const audio = document.getElementById("audio");
-
-    let countdown;
-    let timeLeft = 3600; // 1 hour in seconds
-
-    startButton.addEventListener("click", () => {
-      // hide button
-      startButton.style.display = "none";
-      // start audio
-      audio.play();
-      // start countdown
-      startCountdown();
-    });
+    let duration = 60 * 60; // 1 hour in seconds
+    let timerInterval;
 
     function startCountdown() {
-      countdown = setInterval(() => {
-        if (timeLeft <= 0) {
-          clearInterval(countdown);
-          countdownEl.textContent = "00:00:00";
-          launchConfetti();
-        } else {
-          timeLeft--;
-          countdownEl.textContent = formatTime(timeLeft);
+      const audio = document.getElementById('countdownAudio');
+      audio.play();
+      
+      const button = document.getElementById('startBtn');
+      button.style.display = 'none';
+
+      const timerDisplay = document.getElementById('timer');
+      let timeRemaining = duration;
+
+      timerInterval = setInterval(() => {
+        const hours = String(Math.floor(timeRemaining / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((timeRemaining % 3600) / 60)).padStart(2, '0');
+        const seconds = String(timeRemaining % 60).padStart(2, '0');
+        timerDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          timerDisplay.textContent = "00:00:00";
+          confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
         }
+        timeRemaining--;
       }, 1000);
     }
 
-    function formatTime(seconds) {
-      const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-      const s = String(seconds % 60).padStart(2, "0");
-      return `${h}:${m}:${s}`;
-    }
-
-    // 🎉 Confetti effect
-    const confettiCanvas = document.getElementById("confetti");
-    const ctx = confettiCanvas.getContext("2d");
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-
-    const confettiPieces = [];
-    for (let i = 0; i < 200; i++) {
-      confettiPieces.push({
-        x: Math.random() * confettiCanvas.width,
-        y: Math.random() * confettiCanvas.height - confettiCanvas.height,
-        r: Math.random() * 6 + 4,
-        d: Math.random() * 200,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        tilt: Math.random() * 10 - 10
-      });
-    }
-
-    function drawConfetti() {
-      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      confettiPieces.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-      });
-      updateConfetti();
-    }
-
-    function updateConfetti() {
-      confettiPieces.forEach(p => {
-        p.y += Math.cos(p.d) + 1 + p.r / 2;
-        p.x += Math.sin(p.d);
-        if (p.y > confettiCanvas.height) {
-          p.x = Math.random() * confettiCanvas.width;
-          p.y = -10;
-        }
-      });
-    }
-
-    function launchConfetti() {
-      setInterval(drawConfetti, 20);
-    }
+    document.getElementById('startBtn').addEventListener('click', startCountdown);
   </script>
 </body>
 </html>
